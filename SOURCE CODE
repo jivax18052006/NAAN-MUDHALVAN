@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Load the dataset
+df = pd.read_csv("patient_data_100.csv")  # Ensure this CSV is in your working directory
+
+# 2. Encode categorical data (e.g., Gender)
+df['Gender'] = LabelEncoder().fit_transform(df['Gender'])  # Male=1, Female=0
+
+# 3. Define features and target
+X = df.drop(['ID', 'Disease'], axis=1)  # Drop non-feature and target columns
+y = df['Disease']
+
+# 4. Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 5. Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 6. Train Random Forest Classifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# 7. Predict on test set
+y_pred = model.predict(X_test_scaled)
+
+# 8. Evaluation
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# 9. Plot feature importance
+feature_importances = pd.Series(model.feature_importances_, index=X.columns)
+feature_importances.nlargest(10).plot(kind='barh')
+plt.title("Top 10 Feature Importances")
+plt.xlabel("Importance")
+plt.tight_layout()
+plt.show()
